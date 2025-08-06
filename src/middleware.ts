@@ -13,7 +13,7 @@ export const middlewareLogResponses = (req: Request, res: Response, next: NextFu
 };
 
 export const middlewareMetricsInc = (req: Request, res: Response, next: NextFunction) => {
-	config.fileserverHits += 1;
+	config.api.fileServerHits += 1;
 	next();
 };
 

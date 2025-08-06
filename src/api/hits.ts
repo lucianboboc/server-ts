@@ -8,7 +8,7 @@ export async function handlerHits(req: Request, res: Response) {
 			<html>
 			<body>
 				<h1>Welcome, Chirpy Admin</h1>
-				<p>Chirpy has been visited ${config.fileserverHits} times!</p>
+				<p>Chirpy has been visited ${config.api.fileServerHits} times!</p>
 			</body>
 			</html>
 		`)
@@ -16,7 +16,7 @@ export async function handlerHits(req: Request, res: Response) {
 }
 
 export async function handlerResetHits(req: Request, res: Response) {
-	config.fileserverHits = 0;
+	config.api.fileServerHits = 0;
 	res.status(200)
 		.send("Hits: 0")
 		.end();
