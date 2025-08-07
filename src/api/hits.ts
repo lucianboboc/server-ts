@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 import {config} from "../config.js";
+import {deleteAllUsers} from "../db/queries/users.js";
+import {ForbiddenError} from "./errors.js";
 
 export async function handlerHits(req: Request, res: Response) {
 	res.status(200)
@@ -16,7 +18,12 @@ export async function handlerHits(req: Request, res: Response) {
 }
 
 export async function handlerResetHits(req: Request, res: Response) {
+	if (config.api.platform !== "dev") {
+		throw new ForbiddenError("Forbidden");
+	}
+
 	config.api.fileServerHits = 0;
+	await deleteAllUsers();
 	res.status(200)
 		.send("Hits: 0")
 		.end();
