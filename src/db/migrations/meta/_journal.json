@@ -15,6 +15,13 @@
       "when": 1754600709646,
       "tag": "0001_calm_trish_tilby",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754683906249,
+      "tag": "0002_amazing_karma",
+      "breakpoints": true
     }
   ]
 }

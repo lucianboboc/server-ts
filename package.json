@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",
     "drizzle-kit": "^0.31.4",
@@ -10,6 +11,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "drizzle-orm": "^0.44.4",
     "express": "^5.1.0",
     "postgres": "^3.4.7",
