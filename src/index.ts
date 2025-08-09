@@ -6,7 +6,7 @@ import {migrate} from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import {config} from "./config.js";
 import {drizzle} from "drizzle-orm/postgres-js";
-import {createUserHandler, loginUserHandler} from "./api/users.js";
+import {createUserHandler, updateUserHandler, loginUserHandler} from "./api/users.js";
 import {createChirpHandler, getChirpsHandler, getChirpHandler} from "./api/chirps.js";
 import {refreshTokenHandler, revokeRefreshTokenHandler} from "./api/tokens.js";
 
@@ -19,6 +19,7 @@ app.use(express.json());
 app.use("/app", middlewareMetricsInc, express.static('./src/app'));
 app.get("/api/healthz", handlerReadiness);
 app.post("/api/users", createUserHandler);
+app.put("/api/users", updateUserHandler);
 app.post("/api/login", loginUserHandler);
 app.get("/admin/metrics", handlerHits);
 app.post("/admin/reset", handlerResetHits);

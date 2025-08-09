@@ -14,6 +14,17 @@ export async function createUser(user: NewUser) {
 	return makeUserResponse(result);
 }
 
+export async function updateUser(user: NewUser): Promise<UserResponse | undefined> {
+	const [result] = await db
+		.update(users)
+		.set({email: user.email, passwordHash: user.passwordHash})
+		.returning();
+	if (!result) {
+		return undefined;
+	}
+	return makeUserResponse(result);
+}
+
 export async function getUser(email: string) {
 	const [result] = await db.select().from(users).where(eq(users.email, email))
 	return result;
