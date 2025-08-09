@@ -1,5 +1,6 @@
+import type {Request} from "express";
 import {describe, it, expect, beforeAll} from "vitest";
-import {checkPasswordHash, makeJWT, validateJWT} from "./auth";
+import {checkPasswordHash, getBearerToken, makeJWT, validateJWT} from "./auth";
 import {hashPassword} from "./auth";
 import {UnauthorizedError} from "./errors";
 
@@ -65,3 +66,24 @@ describe("JWT", () => {
 			.toThrow(UnauthorizedError);
 	});
 });
+
+describe("Bearer token", () => {
+	const token = "my$ecret$token"
+
+	it("should return token from request", () => {
+		let req = {
+			header: (name: string) => `Bearer ${token}`
+		} as Request;
+		const result = getBearerToken(req);
+		expect(result).toBe(token);
+	})
+
+	it("should return throw an error if token is missing", () => {
+		let req = {
+			header: (name: string) => "invalid"
+		} as Request;
+
+		expect(() => getBearerToken(req))
+			.toThrow(UnauthorizedError);
+	})
+})

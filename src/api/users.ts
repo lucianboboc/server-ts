@@ -1,8 +1,9 @@
 import {Request, Response} from "express";
 import {createUser, getUser, makeUserResponse} from "../db/queries/users.js";
 import {respondWithJSON} from "./json.js";
-import {checkPasswordHash, hashPassword} from "./auth.js";
+import {checkPasswordHash, hashPassword, makeJWT} from "./auth.js";
 import {UnauthorizedError} from "./errors.js";
+import {config} from "../config.js";
 
 export async function createUserHandler(req: Request, res: Response) {
 	const {email, password} = req.body;
@@ -16,9 +17,17 @@ export async function createUserHandler(req: Request, res: Response) {
 }
 
 export async function loginUserHandler(req: Request, res: Response) {
-	const {email, password} = req.body;
+	type parameters = {
+		email: string;
+		password: string;
+		expiresInSeconds?: number;
+	}
+	let {email, password, expiresInSeconds}: parameters = req.body;
 	if (!email || !password) {
 		throw new Error("Missing credentials");
+	}
+	if (!expiresInSeconds) {
+		expiresInSeconds = 3600;
 	}
 
 	const user = await getUser(email);
@@ -32,5 +41,6 @@ export async function loginUserHandler(req: Request, res: Response) {
 	}
 
 	const userResp = makeUserResponse(user);
-	respondWithJSON(res, 200, userResp)
+	const token = makeJWT(userResp.id!, expiresInSeconds, config.api.secret);
+	respondWithJSON(res, 200, {...userResp, token})
 }

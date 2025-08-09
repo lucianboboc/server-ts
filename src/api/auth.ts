@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
 import type {JwtPayload} from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';
-import {UnauthorizedError} from "./errors";
+import {UnauthorizedError} from "./errors.js";
+import type {Request} from "express";
 
 const TOKEN_ISSUER = "chirpy";
 
@@ -37,6 +38,18 @@ export function validateJWT(tokenString: string, secret: string) {
 	}
 
 	return payload.sub;
+}
+
+export function getBearerToken(req: Request): string {
+	const authHeader = req.header("Authorization");
+	if (!authHeader) {
+		throw new UnauthorizedError("Unauthorized");
+	}
+	const [_, token] = authHeader.split(" ");
+	if (!token) {
+		throw new UnauthorizedError("Unauthorized");
+	}
+	return token;
 }
 
 export async function hashPassword(password: string) {

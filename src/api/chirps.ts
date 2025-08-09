@@ -1,18 +1,27 @@
 import type {Request, Response} from "express";
 import {respondWithJSON} from "./json.js";
-import {BadRequestError, NotFoundError} from './errors.js';
+import {BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError} from './errors.js';
 import {createChirp, getAllChirps, getChirp} from "../db/queries/chirps.js";
+import {getBearerToken, validateJWT} from "./auth.js";
+import {config} from "../config.js";
 
 export async function createChirpHandler(req: Request, res: Response) {
+	const token = getBearerToken(req);
+	if (!token) {
+		throw new UnauthorizedError("Invalid credentials");
+	}
+	const userID = validateJWT(token, config.api.secret);
+
 	type parameters = {
 		body: string;
 		userId: string;
 	}
-	const chirp:parameters = req.body;
-	if (!chirp.body || !chirp.userId) {
+	const chirp: parameters = req.body;
+	if (!chirp.body) {
 		throw new BadRequestError("Invalid body or userId");
 	}
 
+	chirp.userId = userID;
 	validateChirp(chirp.body);
 	const result = await createChirp(chirp);
 	respondWithJSON(res, 201, result)
