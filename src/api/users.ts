@@ -1,9 +1,10 @@
 import {Request, Response} from "express";
 import {createUser, getUser, makeUserResponse} from "../db/queries/users.js";
 import {respondWithJSON} from "./json.js";
-import {checkPasswordHash, hashPassword, makeJWT} from "./auth.js";
+import {checkPasswordHash, hashPassword, makeJWT, makeRefreshToken} from "./auth.js";
 import {UnauthorizedError} from "./errors.js";
 import {config} from "../config.js";
+import {createRefreshToken} from "../db/queries/tokens.js";
 
 export async function createUserHandler(req: Request, res: Response) {
 	const {email, password} = req.body;
@@ -20,14 +21,10 @@ export async function loginUserHandler(req: Request, res: Response) {
 	type parameters = {
 		email: string;
 		password: string;
-		expiresInSeconds?: number;
 	}
-	let {email, password, expiresInSeconds}: parameters = req.body;
+	let {email, password}: parameters = req.body;
 	if (!email || !password) {
 		throw new Error("Missing credentials");
-	}
-	if (!expiresInSeconds) {
-		expiresInSeconds = 3600;
 	}
 
 	const user = await getUser(email);
@@ -40,7 +37,17 @@ export async function loginUserHandler(req: Request, res: Response) {
 		throw new UnauthorizedError("Invalid credentials");
 	}
 
+	const expiresInSeconds = 3600;
 	const userResp = makeUserResponse(user);
 	const token = makeJWT(userResp.id!, expiresInSeconds, config.api.secret);
-	respondWithJSON(res, 200, {...userResp, token})
+	const refreshToken = makeRefreshToken();
+	const tokenResult = await createRefreshToken(refreshToken, userResp.id!, addDays(new Date(), 60))
+	console.log(tokenResult);
+	respondWithJSON(res, 200, {...userResp, token, refreshToken: tokenResult.token});
+}
+
+function addDays(date: Date, days: number) {
+	var result = new Date(date);
+	result.setDate(date.getDate() + days);
+	return result;
 }

@@ -3,6 +3,7 @@ import type {JwtPayload} from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';
 import {UnauthorizedError} from "./errors.js";
 import type {Request} from "express";
+import {randomBytes} from "node:crypto";
 
 const TOKEN_ISSUER = "chirpy";
 
@@ -50,6 +51,11 @@ export function getBearerToken(req: Request): string {
 		throw new UnauthorizedError("Unauthorized");
 	}
 	return token;
+}
+
+export function makeRefreshToken() {
+	const bytes = randomBytes(256);
+	return bytes.toString('hex');
 }
 
 export async function hashPassword(password: string) {
