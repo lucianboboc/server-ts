@@ -30,6 +30,15 @@ export async function getUser(email: string) {
 	return result;
 }
 
+export async function upgradeUserToChirpyRed(userId: string) {
+	const [result] = await db
+		.update(users)
+		.set({isChirpyRed: true})
+		.where(eq(users.id, userId))
+		.returning();
+	return result;
+}
+
 export async function deleteAllUsers() {
 	await db.delete(users);
 }
@@ -40,7 +49,7 @@ export function makeUserResponse(user: NewUser) {
 		email: user.email,
 		createdAt: user.createdAt,
 		updatedAt: user.updatedAt,
-
+		isChirpyRed: user.isChirpyRed,
 	};
 	return userResp;
 }

@@ -1,8 +1,16 @@
 import {Request, Response} from "express";
-import {createUser, getUser, makeUserResponse, updateUser} from "../db/queries/users.js";
+import {createUser, getUser, makeUserResponse, updateUser, upgradeUserToChirpyRed} from "../db/queries/users.js";
 import {respondWithJSON} from "./json.js";
-import {checkPasswordHash, getBearerToken, hashPassword, makeJWT, makeRefreshToken, validateJWT} from "./auth.js";
-import {NotFoundError, UnauthorizedError} from "./errors.js";
+import {
+	checkPasswordHash,
+	getAPIKey,
+	getBearerToken,
+	hashPassword,
+	makeJWT,
+	makeRefreshToken,
+	validateJWT
+} from "./auth.js";
+import {BadRequestError, NotFoundError, UnauthorizedError} from "./errors.js";
 import {config} from "../config.js";
 import {createRefreshToken} from "../db/queries/tokens.js";
 
@@ -60,6 +68,32 @@ export async function loginUserHandler(req: Request, res: Response) {
 	const tokenResult = await createRefreshToken(refreshToken, userResp.id!, addDays(new Date(), 60))
 	console.log(tokenResult);
 	respondWithJSON(res, 200, {...userResp, token, refreshToken: tokenResult.token});
+}
+
+export async function userWebhookHandler(req: Request, res: Response) {
+	const apiKey = getAPIKey(req);
+	if (!apiKey || apiKey !== config.api.polkaKey) {
+		throw new UnauthorizedError("Invalid apiKey");
+	}
+
+	type parameters = {
+		event: string;
+		data: {
+			userId: string;
+		}
+	};
+
+	const params: parameters = req.body;
+	if (!params.data.userId) {
+		throw new BadRequestError("Missing userId");
+	}
+
+	const result = await upgradeUserToChirpyRed(params.data.userId);
+	if (!result) {
+		throw new UnauthorizedError("Missing user");
+	}
+
+	res.status(204).send();
 }
 
 function addDays(date: Date, days: number) {

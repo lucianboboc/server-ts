@@ -46,11 +46,24 @@ export function getBearerToken(req: Request): string {
 	if (!authHeader) {
 		throw new UnauthorizedError("Unauthorized");
 	}
-	const [_, token] = authHeader.split(" ");
-	if (!token) {
+	const [bearerLabel, token] = authHeader.split(" ");
+	if (bearerLabel !== "Bearer" || !token) {
 		throw new UnauthorizedError("Unauthorized");
 	}
 	return token;
+}
+
+export function getAPIKey(req: Request): string {
+	const authHeader = req.header("Authorization");
+	if (!authHeader) {
+		throw new UnauthorizedError("Invalid apiK");
+	}
+	const [apiKeyLabel, apiKey] = authHeader.split(" ");
+	if (apiKeyLabel !== "ApiKey" || !apiKey) {
+		throw new UnauthorizedError("Invalid apiKey");
+	}
+
+	return apiKey;
 }
 
 export function makeRefreshToken() {
