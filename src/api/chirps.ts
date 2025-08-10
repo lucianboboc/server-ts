@@ -1,10 +1,10 @@
 import type {Request, Response} from "express";
 import {respondWithJSON} from "./json.js";
 import {BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError} from './errors.js';
-import {createChirp, deleteChirp, getAllChirps, getChirp} from "../db/queries/chirps.js";
+import {createChirp, deleteChirp, getAllChirps, getChirp, getChirpsForUser} from "../db/queries/chirps.js";
+import type {Sorting} from '../db/queries/chirps.js';
 import {getBearerToken, validateJWT} from "./auth.js";
 import {config} from "../config.js";
-import {RowList} from "postgres";
 
 export async function createChirpHandler(req: Request, res: Response) {
 	const token = getBearerToken(req);
@@ -29,8 +29,17 @@ export async function createChirpHandler(req: Request, res: Response) {
 }
 
 export async function getChirpsHandler(req: Request, res: Response) {
-	const result = await getAllChirps();
-	respondWithJSON(res, 200, result)
+	const {authorId, sort} = req.query;
+
+	const sortBy: Sorting = isSorting(sort) ? sort : "asc";
+	console.log(`Sorting value ${sort}`);
+	if (typeof authorId === 'string' && authorId.length > 0) {
+		const result = await getChirpsForUser(authorId, sortBy)
+		respondWithJSON(res, 200, result)
+	} else {
+		const result = await getAllChirps(sortBy);
+		respondWithJSON(res, 200, result)
+	}
 }
 
 export async function getChirpHandler(req: Request, res: Response) {
@@ -73,4 +82,8 @@ function filterProfane(data: string) {
 		return word;
 	});
 	return words.join(" ");
+}
+
+function isSorting(sort: unknown): sort is Sorting {
+	return sort === "asc" || sort === "desc";
 }
